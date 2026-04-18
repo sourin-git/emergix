@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PATIENT
+  DRIVER
+  VOLUNTEER
+  ADMIN
+}
+
+enum AmbulanceType {
+  BLS
+  ALS
+  ICU
+}
+
+enum AmbulanceStatus {
+  AVAILABLE
+  DISPATCHED
+  OFFLINE
+}
+
+enum IncidentType {
+  ACCIDENT
+  CARDIAC
+  SNAKE_BITE
+  OTHER
+}
+
+enum IncidentUrgency {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  PENDING
+  DISPATCHED
+  ARRIVED
+  RESOLVED
+  CANCELLED
+}
+
+enum RouteType {
+  FASTEST
+  SHORTEST
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  phone        String   @unique
+  email        String?  @unique
+  role         Role     @default(PATIENT)
+  language     String?
+  bloodGroup   String?
+  locationLat  Float?
+  locationLng  Float?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  ambulance    Ambulance?
+  incidents    Incident[]
+  volunteer    Volunteer?
+  bloodDonor   BloodDonor?
+  emergencyContacts EmergencyContact[]
+}
+
+model Ambulance {
+  id             String          @id @default(uuid())
+  driverId       String          @unique
+  driver         User            @relation(fields: [driverId], references: [id])
+  vehicleNumber  String          @unique
+  type           AmbulanceType
+  status         AmbulanceStatus @default(OFFLINE)
+  currentLat     Float?
+  currentLng     Float?
+  updatedAt      DateTime        @updatedAt
+
+  incidents      Incident[]
+}
+
+model Incident {
+  id                String          @id @default(uuid())
+  userId            String
+  user              User            @relation(fields: [userId], references: [id])
+  ambulanceId       String?
+  ambulance         Ambulance?      @relation(fields: [ambulanceId], references: [id])
+  type              IncidentType
+  urgency           IncidentUrgency
+  landmarkText      String?
+  locationLat       Float
+  locationLng       Float
+  status            IncidentStatus  @default(PENDING)
+  smsFallbackUsed   Boolean         @default(false)
+  voiceInputUsed    Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+  resolvedAt        DateTime?
+
+  routes            Route[]
+}
+
+model Volunteer {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id])
+  skills          String[]  // Prisma allows string arrays in Postgres
+  radiusKm        Float
+  isAvailable     Boolean   @default(true)
+  lastAlertedAt   DateTime?
+}
+
+model BloodDonor {
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+  bloodGroup    String
+  city          String
+  lastDonated   DateTime?
+  isAvailable   Boolean   @default(true)
+}
+
+model Hospital {
+  id            String  @id @default(uuid())
+  name          String
+  address       String
+  lat           Float
+  lng           Float
+  phone         String
+  bedsAvailable Int
+  hasIcu        Boolean @default(false)
+}
+
+model Route {
+  id               String    @id @default(uuid())
+  incidentId       String
+  incident         Incident  @relation(fields: [incidentId], references: [id])
+  polyline         String
+  distanceKm       Float
+  durationMin      Float
+  routeType        RouteType
+  trafficApplied   Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+}
+
+model EmergencyContact {
+  id      String @id @default(uuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+  name    String
+  phone   String
+}
+
+model NotificationLog {
+  id          String   @id @default(uuid())
+  type        String   
+  recipient   String   
+  content     String
+  status      String   
+  incidentId  String?
+  createdAt   DateTime @default(now())
+}

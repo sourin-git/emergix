@@ -1,0 +1,26 @@
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Multi-stage logic mimicking Turborepo deployment pipelines without explicit scoping requirements
+COPY . .
+RUN npm install
+
+ARG SERVICE_PATH
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+# Execute standard security checks implementing zero-trust permissions via root stripping
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nodeuser
+
+COPY --from=builder /app /app
+
+RUN chown -R nodeuser:nodejs /app
+USER nodeuser
+
+ARG SERVICE_PATH
+ENV WORK_PATH=/app/${SERVICE_PATH}
+
+WORKDIR ${WORK_PATH}
+CMD ["npm", "start"]

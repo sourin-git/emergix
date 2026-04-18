@@ -1,0 +1,16 @@
+{
+  "name": "@emergix/database",
+  "version": "1.0.0",
+  "description": "Shared database schemas (Prisma & Mongoose) for the Emergix project",
+  "main": "index.js",
+  "scripts": {
+    "generate": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.0.0",
+    "mongoose": "^8.0.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.0.0"
+  }
+}

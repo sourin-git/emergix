@@ -1,7 +1,7 @@
 [build]
-  command = "npm run build --workspace=web"
-  publish = "apps/web/dist"
-  functions = "apps/web/netlify/functions"
+  command = "npm --prefix emergix run build --workspace=web"
+  publish = "emergix/apps/web/dist"
+  functions = "emergix/apps/web/netlify/functions"
 
 [[redirects]]
   from = "/*"

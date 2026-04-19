@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build --workspace=web"
+  publish = "apps/web/dist"
+  functions = "apps/web/netlify/functions"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
